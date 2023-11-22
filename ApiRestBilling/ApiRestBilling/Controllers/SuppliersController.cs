@@ -1,5 +1,6 @@
 ﻿using ApiRestBilling.Data;
 using ApiRestBilling.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,9 +34,9 @@ namespace ApiRestBilling.Controllers
 
 
         // GET api/<SuppliersController>/5
-        [HttpGet("{id}")] 
+        [HttpGet("{id}")]
 
-        public async  Task<ActionResult<Supplier>> Get(int id)
+        public async Task<ActionResult<Supplier>> Get(int id)
         {
             if (_context.Suppliers == null)
             {
@@ -67,10 +68,35 @@ namespace ApiRestBilling.Controllers
 
         // PUT api/<SuppliersController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<ActionResult> Put(int id, [FromBody] Supplier supplier)
         {
-        }
+            if (id!= supplier.Id)
+            {
+                return BadRequest();
+            }
+            _context.Entry(supplier).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
 
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SupplierExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            return NoContent();
+            }
+        private bool SupplierExists(int id) 
+        {
+            return (_context.Suppliers?.Any(s => s.Id == id)).GetValueOrDefault();
+        }
         // DELETE api/<SuppliersController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
