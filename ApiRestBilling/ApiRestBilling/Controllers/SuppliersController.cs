@@ -70,7 +70,7 @@ namespace ApiRestBilling.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromBody] Supplier supplier)
         {
-            if (id!= supplier.Id)
+            if (id != supplier.Id)
             {
                 return BadRequest();
             }
@@ -92,15 +92,32 @@ namespace ApiRestBilling.Controllers
                 }
             }
             return NoContent();
-            }
-        private bool SupplierExists(int id) 
+        }
+        private bool SupplierExists(int id)
         {
             return (_context.Suppliers?.Any(s => s.Id == id)).GetValueOrDefault();
         }
         // DELETE api/<SuppliersController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
+
+            if (_context.Suppliers is null)
+            {
+                return NotFound();
+            }
+            var supplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
+            if (supplier == null)
+            {
+                return NotFound();
+            }
+            _context.Suppliers.Remove(supplier);
+            await _context.SaveChangesAsync();
+            return NoContent();
+
         }
+    
+                 
+
     }
 }
